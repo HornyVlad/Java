@@ -74,27 +74,14 @@ public class Form extends JFrame {
         calculateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (table1.getSelectedRowCount() == 1) {
-                    int rowIndex = table1.getSelectedRow();
-                    double a = Double.parseDouble(MyModel.getValueAt(rowIndex, 0).toString());
-                    double b = Double.parseDouble(MyModel.getValueAt(rowIndex, 1).toString());
-                    double h = Double.parseDouble(MyModel.getValueAt(rowIndex, 2).toString());
-                    double s = 0;
-                    int j = 0;
-                    for (double i = 0; i <= (a - b) / h; i++) {
-                        if (b + (i + 1) * h <= a)
-                            s += (cos(b * b + j * h) + cos(b * b + (j + 1) * h)) * h / 2;
-                        else
-                            s += (cos(b * b + j * h) + cos(a * a)) * h / 2;
-                        j++;
-                    }
-
-                    table1.setValueAt((double) a, rowIndex, 0);
-                    table1.setValueAt((double) b, rowIndex, 1);
-                    table1.setValueAt((double) h, rowIndex, 2);
-                    table1.setValueAt(s, rowIndex, 3);
-                } else
-                    JOptionPane.showMessageDialog(calculateButton, "Пожалуйста выберите 1 любую строку");
+                Thread[] thread = new Thread[9];
+                for (int i = 0; i < 9; i++) {
+                    thread[i] = new Thread(new MyThread(Double.parseDouble(MyModel.getValueAt(i, 0).toString()),
+                            Double.parseDouble(MyModel.getValueAt(i, 1).toString()),
+                            Double.parseDouble(MyModel.getValueAt(i, 2).toString()),
+                            i, table1));
+                    thread[i].start();
+                }
             }
         });
 
