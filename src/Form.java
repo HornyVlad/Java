@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -74,14 +75,48 @@ public class Form extends JFrame {
         calculateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Thread[] thread = new Thread[9];
-                for (int i = 0; i < 9; i++) {
-                    thread[i] = new Thread(new MyThread(Double.parseDouble(MyModel.getValueAt(i, 0).toString()),
-                            Double.parseDouble(MyModel.getValueAt(i, 1).toString()),
-                            Double.parseDouble(MyModel.getValueAt(i, 2).toString()),
-                            i, table1));
-                    thread[i].start();
+                try {
+                    DatagramSocket clientSocket = new DatagramSocket();
+                    InetAddress IPAddress = InetAddress.getByName("localhost");
+
+                    byte[] sendingDataBuffer = new byte[1024];
+                    String message;
+                    DatagramPacket sendingPacket;
+
+                    byte[] receivingDataBuffer = new byte[1024];
+                    DatagramPacket receivingPacket;
+
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 3; j++) {
+                            message = new String(MyModel.getValueAt(i, j).toString());
+                            sendingDataBuffer = message.getBytes();
+                            sendingPacket = new DatagramPacket(sendingDataBuffer, sendingDataBuffer.length, IPAddress, 8080);
+                            clientSocket.send(sendingPacket);
+                        }
+                    }
+                    for (int i = 0; i < 9; i++) {
+                        receivingPacket = new DatagramPacket(receivingDataBuffer, receivingDataBuffer.length);
+                        clientSocket.receive(receivingPacket);
+                        String receivedData = new String(receivingPacket.getData());
+                        table1.setValueAt(Double.parseDouble(receivedData), i, 3);
+                    }
+
+                    clientSocket.close();
+                } catch (UnknownHostException ex) {
+                    throw new RuntimeException(ex);
+                } catch (SocketException ex) {
+                    throw new RuntimeException(ex);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
                 }
+//                Thread[] thread = new Thread[9];
+//                for (int i = 0; i < 9; i++) {
+//                    thread[i] = new Thread(new MyThread(Double.parseDouble(MyModel.getValueAt(i, 0).toString()),
+//                            Double.parseDouble(MyModel.getValueAt(i, 1).toString()),
+//                            Double.parseDouble(MyModel.getValueAt(i, 2).toString()),
+//                            i, table1));
+//                    thread[i].start();
+//                }
             }
         });
 
@@ -302,7 +337,7 @@ public class Form extends JFrame {
         removeButton.setText("Удалить");
         MainPanel.add(removeButton, new com.intellij.uiDesigner.core.GridConstraints(1, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         calculateButton = new JButton();
-        calculateButton.setText("Расчитать");
+        calculateButton.setText("Рассчитать");
         MainPanel.add(calculateButton, new com.intellij.uiDesigner.core.GridConstraints(2, 3, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         ClearButton = new JButton();
         ClearButton.setText("Очистить");
